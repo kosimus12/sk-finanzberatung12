@@ -64,41 +64,75 @@ Nebenkostenrisiko. Nur Objekte mit plausibler Rendite vorschlagen.
 - Fehlende Werte (Deckenhöhe/Bodenlast/Gebietstyp fehlen auf Immoscout oft!)
   → Status **„prüfen"** → an dich/Alex, **nicht** verwerfen.
 
+## Täglicher Betrieb (dein Rhythmus)
+
+- **Uhrzeit:** Scraper **+ Alex-Validierung** laufen **täglich um 16:00**. So hast
+  du nachmittags/abends Zeit, bei Bedarf noch zu telefonieren.
+- **Erster Lauf = Voll-Scan** über alle passenden Inserate. **Danach nur Delta:**
+  jeden Tag nur **neu hinzugekommene** Objekte prüfen (bereits gesehene IDs in
+  einer „seen"-Liste auf Hetzner speichern und überspringen). Spart Zeit + Tokens.
+- **Bilder + Exposé-PDFs immer mitverwerten:** Alex lädt zu jedem interessanten
+  Objekt die **Fotos und das Exposé-PDF**, wertet sie per Bild-/Textanalyse aus
+  (Zustand, Grundriss, Deckenhöhe/Boden-Hinweise, versteckte Mängel, Ausstattung)
+  und lässt das in die Einschätzung einfließen.
+- **Kontext:** Alex zieht deinen Kontext aus dem gemeinsamen Gedächtnis / Cowork
+  (Budget, Regionen, Smart-Gym-Kriterien), um treffsicher zu bewerten.
+
 ## Telegram-Freigabe (das „einmal kurz validieren")
 
-Pro interessantem Treffer schickt Alex dir **eine kompakte Telegram-Nachricht**:
+Pro interessantem Treffer **eine kurze** Telegram-Nachricht — **nicht zu viel**,
+genau: **Immobilie · Einschätzung · Mini-Zusammenfassung**:
 
 ```
-🏠 [Kategorie c – Vermieten] Musterstr. 1, 24103 Kiel
-Kaufpreis 245.000 € · 68 m² · Kaltmiete 720 € · Rendite ~3,5 %
-Zustand: gepflegt · Baujahr 1998 · Etage 2/4
-Score: 74/100 · Quelle: ImmoScout <Link>
-Anschreiben bereit (Absender: alex@sk-finanzberatung.de).
-Antworte: JA = senden · NEIN = verwerfen · DETAILS = mehr
+🏠 [c – Vermieten] Musterstr. 1, 24103 Kiel · 245.000 € · 68 m²
+Einschätzung: solide Kapitalanlage, Rendite ~3,5 %, Score 74/100.
+Kurz: gepflegt (Bj. 98), 2/4, Fotos ok, Exposé ohne Mängel-Hinweis.
+📎 3 Fotos + Exposé ausgewertet · ImmoScout <Link>
+JA = anschreiben (alex@sk-finanzberatung.de) · NEIN · DETAILS
 ```
 
-Du antwortest **JA/NEIN** direkt im Telegram-Chat (läuft über den Hub → Mac-Alex
-→ `propose_send`). Erst nach „JA" geht die Mail über das richtige Konto raus.
+Du antwortest **JA / NEIN** (oder DETAILS für mehr) direkt im Telegram-Chat
+(läuft über den Hub → Mac-Alex → `propose_send`). Erst nach **„JA"** geht die
+Kontaktnachricht über das richtige Konto/Persona raus.
 
 ## So wird es „scharf geschaltet"
 
 1. **Hub deployen + Brücken starten** (siehe `README.md`) – Voraussetzung für
    Telegram-Freigabe und Agenten-Kommunikation.
-2. **Hetzner-Scraper** so einstellen, dass er sein Ergebnis (JSON/Liste) nach
-   jedem Lauf an den Hub meldet: `POST /message {toCapability:"main",
-   body:"IMMO-Ergebnisse: <json/link>"}` (oder Datei im geteilten Ordner + kurze
-   Meldung). Danach triggert Alex automatisch die Analyse.
+2. **Scraper auf Hetzner als täglichen Cron um 16:00** einrichten (Beispiel):
+   ```cron
+   0 16 * * *  /usr/bin/node /opt/immo-scraper/run.js >> /var/log/immo.log 2>&1
+   ```
+   Der Lauf: (a) neue Inserate holen, (b) gegen `seen.json` filtern (nur Delta),
+   (c) Smart-Gym-Objekte gegen `gym_property_validation_schema.json` scoren,
+   (d) Ergebnis (inkl. Foto-/PDF-Links) an den Hub melden:
+   `POST /message {toCapability:"main", body:"IMMO 16:00: <json/link>"}`.
+   Danach triggert Alex automatisch Analyse → Telegram-Digest.
 3. **Alex-Memory ergänzen:** Dieses Playbook als Regel in „Alex-Gedächtnis"
    aufnehmen (oder ins gemeinsame Hub-Gedächtnis), damit alle Agenten es kennen.
+
+> **Ehrlicher Stand (aus deinem Drive/Cockpit):** Deine **Prüflogik**
+> (`gym_property_validation_schema.json`, v2.0) und die **Workflow-Regeln** sind
+> aktuell und vollständig. Einen **laufenden Immo-Scraper** finde ich aber weder
+> in Drive noch in deinem Projekt-Cockpit (dort laufen IG-Engine, LinkedIn-Scraper
+> via Apify, OpenClaw-Abbau u. a. — **kein** Immo-Scraper). Der Scraper-Code liegt
+> vermutlich lokal auf Mac/Hetzner, worauf ich aus der Cloud **keinen Zugriff**
+> habe. Heißt: „täglich um 16:00 einrichten" macht der **Hetzner-Claude** über die
+> Brücke — ich liefere hier die genaue Vorlage dafür.
 
 ## Offene Punkte (brauche ich von dir)
 
 - **Privat-Kriterien (a/b):** Region(en), Budget Miete/Kauf, Zimmer/Größe, Muss/
   Kann. Für Smart Gym (d) und Vermieten (c) ist alles hinterlegt, für deine
   privaten Wohn-Wünsche noch nicht.
-- **Rhythmus:** Wie oft soll der Scraper laufen und Alex dir Treffer schicken
-  (z. B. 1×/Tag Sammel-Digest oder sofort je Treffer)?
-- **„Ralf/OpenClaude" & „Hermes":** Hermes ist aktuell dein Telegram-/Freigabe-
-  Bot (Hetzner-Cron). Die neue Hub-Telegram-Anbindung **ersetzt** Hermes –
-  deshalb Hermes erst abschalten, **wenn** der neue Telegram-Kanal läuft, sonst
-  fehlt kurzzeitig der Freigabe-Weg.
+- **Scraper-Quelle:** Nur ImmoScout24 oder auch Kleinanzeigen/Immowelt? Und liegt
+  irgendwo schon Scraper-Code (Mac-Ordner „Mac Related"?), den der Hetzner-Claude
+  weiterverwenden soll — oder neu bauen?
+
+### Namens-Klarstellung (wichtig fürs Aufräumen)
+- **„OpenClaude/Ralf" = OpenClaw + n8n** auf dem Oracle-Server (158.101.171.104).
+  Laut deinem Cockpit läuft der **Abbau** bereits („OpenClaw-Abbau"). Oracle soll
+  als abgesichertes Toolkit bleiben.
+- **„Hermes"** ist dein aktueller **Telegram-/Freigabe-Bot** (Hetzner-Cron). Die
+  neue Hub-Telegram-Anbindung **ersetzt** ihn — Hermes deshalb erst abschalten,
+  **wenn** der neue Kanal läuft, sonst fehlt kurz der JA/NEIN-Weg.
