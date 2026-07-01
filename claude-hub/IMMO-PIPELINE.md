@@ -45,8 +45,9 @@ Mac (Opus 4.8)**. Übergabe der Ergebnisse läuft über den Hub-Nachrichten-Bus.
 ## Analyse-Regeln je Kategorie
 
 **a/b – Privat (Miete/Kauf zum Wohnen):** Filter nach deinen privaten Wohn-
-Kriterien (Region, Budget, Zimmer, Lage). *(Diese Kriterien sind noch nicht
-hinterlegt – siehe „Offene Punkte".)*
+Kriterien (Region, Budget, Zimmer, Lage). **Diese Kriterien liegen im
+Cowork-Kontext** – Alex zieht sie zur Laufzeit aus dem gemeinsamen Gedächtnis /
+Cowork und muss sie **nicht** neu erfragen.
 
 **c – Kauf zum Vermieten:** Standard-Kapitalanlage-Kennzahlen: Kaufpreis,
 Kaltmiete, **Brutto-Mietrendite**, Preis/m², Lage/Mikrolage, Zustand,
@@ -120,14 +121,15 @@ Kontaktnachricht über das richtige Konto/Persona raus.
 > habe. Heißt: „täglich um 16:00 einrichten" macht der **Hetzner-Claude** über die
 > Brücke — ich liefere hier die genaue Vorlage dafür.
 
-## Offene Punkte (brauche ich von dir)
+## Geklärt (Stand jetzt)
 
-- **Privat-Kriterien (a/b):** Region(en), Budget Miete/Kauf, Zimmer/Größe, Muss/
-  Kann. Für Smart Gym (d) und Vermieten (c) ist alles hinterlegt, für deine
-  privaten Wohn-Wünsche noch nicht.
-- **Scraper-Quelle:** Nur ImmoScout24 oder auch Kleinanzeigen/Immowelt? Und liegt
-  irgendwo schon Scraper-Code (Mac-Ordner „Mac Related"?), den der Hetzner-Claude
-  weiterverwenden soll — oder neu bauen?
+- **Quelle:** ausschließlich **ImmoScout24**.
+- **Scraper-Code:** existiert bereits **lokal** (genauer Ort unklar). Der
+  Hetzner-/Mac-Claude **lokalisiert ihn zuerst** (z. B. `find ~ -iname
+  '*immo*scrap*'` / im Ordner „Mac Related") und **baut darauf auf**, statt neu
+  zu bauen. Erst wenn nichts auffindbar ist → neu aufsetzen.
+- **Privat-Kriterien (a/b):** liegen im **Cowork-Kontext** – Alex zieht sie zur
+  Laufzeit, kein erneutes Nachfragen nötig.
 
 ### Namens-Klarstellung (wichtig fürs Aufräumen)
 - **„OpenClaude/Ralf" = OpenClaw + n8n** auf dem Oracle-Server (158.101.171.104).
